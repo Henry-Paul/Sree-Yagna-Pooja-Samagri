@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+  <title>Sri Yagnaa – Authentic Pooja Store</title>
+  
+  <!-- Tailwind CSS (lightweight via CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React + Babel -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Font Awesome 6 (free icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    .animate-slide { animation: slideIn 0.3s ease-out; }
+    .chat-quick-reply { transition: all 0.2s; }
+    .chat-quick-reply:hover { background-color: #f3f4f6; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // -------------------- ENHANCED PRODUCT CATALOG --------------------
+    const PRODUCTS = [
+      // Pooja Kits
+      { id: 1, title: "Varalakshmi Pooja Complete Set", category: "Pooja Kits", price: 999, image: "https://images.unsplash.com/photo-1605379399642-870262d3d051?w=400", amazonLink: "#" },
+      { id: 2, title: "Navagraha Navadhanyalu (9 Grains)", category: "Pooja Kits", price: 499, image: "https://images.unsplash.com/photo-1597304985890-0d7b17a9f0e2?w=400", amazonLink: "#" },
+      { id: 3, title: "Satyanarayan Pooja Thali Set", category: "Pooja Kits", price: 1299, image: "https://images.unsplash.com/photo-1607082349566-187342175e2f?w=400", amazonLink: "#" },
+      { id: 4, title: "Griha Pravesh Pooja Kit", category: "Pooja Kits", price: 1499, image: "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400", amazonLink: "#" },
+      
+      // Pooja Articles
+      { id: 5, title: "Brass Shank Chakra Diya", category: "Pooja Articles", price: 799, image: "https://images.unsplash.com/photo-1607082349566-187342175e2f?w=400", amazonLink: "#" },
+      { id: 6, title: "Panchaloha Pooja Bell", category: "Pooja Articles", price: 649, image: "https://images.unsplash.com/photo-1623082574085-157d955f8d29?w=400", amazonLink: "#" },
+      { id: 7, title: "Brass Deepam (Large)", category: "Pooja Articles", price: 899, image: "https://images.unsplash.com/photo-1623082574085-157d955f8d29?w=400", amazonLink: "#" },
+      { id: 8, title: "Silver Plated Kalash", category: "Pooja Articles", price: 1199, image: "https://images.unsplash.com/photo-1607330289024-1535c6b4e1c1?w=400", amazonLink: "#" },
+      
+      // Supplies
+      { id: 9, title: "Laksha Vathulu Cotton Wicks (200 pcs)", category: "Supplies", price: 299, image: "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400", amazonLink: "#" },
+      { id: 10, title: "Camphor Tablets (Pure)", category: "Supplies", price: 149, image: "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400", amazonLink: "#" },
+      { id: 11, title: "Sandalwood Paste (50g)", category: "Supplies", price: 199, image: "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400", amazonLink: "#" },
+      { id: 12, title: "Agarbatti – Rose & Jasmine (Pack of 6)", category: "Supplies", price: 249, image: "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400", amazonLink: "#" },
+      
+      // Return Gifts
+      { id: 13, title: "Pasupu Kumkum MDF Return Gift Set", category: "Return Gifts", price: 349, image: "https://images.unsplash.com/photo-1623082574085-157d955f8d29?w=400", amazonLink: "#" },
+      { id: 14, title: "Mini Brass Ganesha – Return Gift", category: "Return Gifts", price: 599, image: "https://images.unsplash.com/photo-1623082574085-157d955f8d29?w=400", amazonLink: "#" },
+      { id: 15, title: "Sandalwood Idol (2 inch) Set of 2", category: "Return Gifts", price: 449, image: "https://images.unsplash.com/photo-1623082574085-157d955f8d29?w=400", amazonLink: "#" },
+      
+      // Idols
+      { id: 16, title: "Brass Ganesha Idol – Jilledu", category: "Idols", price: 899, image: "https://images.unsplash.com/photo-1623082574085-157d955f8d29?w=400", amazonLink: "#" },
+      { id: 17, title: "Panchaloha Venkateswara", category: "Idols", price: 2499, image: "https://images.unsplash.com/photo-1623082574085-157d955f8d29?w=400", amazonLink: "#" },
+      { id: 18, title: "Marble Shiva Lingam", category: "Idols", price: 1799, image: "https://images.unsplash.com/photo-1623082574085-157d955f8d29?w=400", amazonLink: "#" }
+    ];
+
+    // Extract unique categories for filter
+    const CATEGORIES = ["All", ...new Set(PRODUCTS.map(p => p.category))];
+
+    // -------------------- MAIN APP --------------------
+    function App() {
+      const [cart, setCart] = useState([]);
+      const [cartOpen, setCartOpen] = useState(false);
+      const [checkoutStep, setCheckoutStep] = useState(0); // 0: cart, 1: shipping, 2: payment, 3: confirmation
+      const [chatOpen, setChatOpen] = useState(false);
+      const [messages, setMessages] = useState([
+        { from: "bot", text: "🙏 Namaste! Welcome to Sri Yagnaa. I can help you find pooja items, check order status, or answer queries." }
+      ]);
+      const [input, setInput] = useState("");
+      const [selectedCategory, setSelectedCategory] = useState("All");
+      const [shippingInfo, setShippingInfo] = useState({ name: "", address: "", city: "", pincode: "", phone: "" });
+      const [discountCode, setDiscountCode] = useState("");
+      const [discountApplied, setDiscountApplied] = useState(false);
+      const [shippingMethod, setShippingMethod] = useState("standard"); // standard, express
+
+      // Add to cart
+      const addToCart = (product) => {
+        setCart(prev => {
+          const exists = prev.find(i => i.id === product.id);
+          if (exists) {
+            return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
+          }
+          return [...prev, { ...product, qty: 1 }];
+        });
+        setCartOpen(true);
+      };
+
+      // Update quantity
+      const updateQty = (id, delta) => {
+        setCart(prev => prev.map(item => 
+          item.id === id ? { ...item, qty: Math.max(1, item.qty + delta) } : item
+        ));
+      };
+
+      // Remove from cart
+      const removeItem = (id) => {
+        setCart(prev => prev.filter(item => item.id !== id));
+      };
+
+      // Subtotal calculation
+      const subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      const discount = discountApplied ? subtotal * 0.05 : 0; // 5% first order
+      const shippingCost = shippingMethod === "express" ? 99 : 49;
+      const total = subtotal - discount + (subtotal > 0 ? shippingCost : 0);
+
+      // Filtered products
+      const filteredProducts = selectedCategory === "All" 
+        ? PRODUCTS 
+        : PRODUCTS.filter(p => p.category === selectedCategory);
+
+      // ---------- CHATBOT LOGIC (enhanced with quick replies) ----------
+      const quickReplies = [
+        "🕉️ Pooja items for Ganesh Chaturthi",
+        "🚚 Shipping charges",
+        "💰 Return policy",
+        "📞 Contact support",
+        "🎁 Return gift ideas"
+      ];
+
+      const sendMessage = (text = input) => {
+        if (!text.trim()) return;
+        
+        // Add user message
+        setMessages(prev => [...prev, { from: "user", text: text }]);
+        
+        // Simulate bot response
+        setTimeout(() => {
+          let botReply = "";
+          const lower = text.toLowerCase();
+          
+          if (lower.includes("ganesh") || lower.includes("chaturthi")) {
+            botReply = "🕉️ For Ganesh Chaturthi we have special pooja kits, modak, and eco-friendly idols. Would you like me to show you?";
+          } else if (lower.includes("shipping") || lower.includes("delivery")) {
+            botReply = "🚚 We offer free shipping on orders above ₹999. Standard delivery (₹49) takes 3-5 days, express (₹99) takes 1-2 days.";
+          } else if (lower.includes("return") || lower.includes("refund")) {
+            botReply = "💰 We accept returns within 7 days of delivery. Items must be unused. You can start a return from your account.";
+          } else if (lower.includes("contact") || lower.includes("support") || lower.includes("phone")) {
+            botReply = "📞 You can reach us at support@sriyagnaa.com or call +91 90000 12345 (Mon-Sat, 9am-6pm).";
+          } else if (lower.includes("return gift")) {
+            botReply = "🎁 Our popular return gifts include Pasupu Kumkum sets, mini brass idols, and sandalwood items. Prices start at ₹35 per piece.";
+          } else if (lower.includes("hello") || lower.includes("hi") || lower.includes("namaste")) {
+            botReply = "🙏 Namaste! How can I assist you with your pooja needs today?";
+          } else {
+            botReply = "🙏 Thank you for your message. Our team will get back to you shortly. Meanwhile, you can browse our products or ask about shipping, returns, etc.";
+          }
+          
+          setMessages(prev => [...prev, { from: "bot", text: botReply }]);
+        }, 500);
+        
+        setInput("");
+      };
+
+      // Quick reply click
+      const handleQuickReply = (reply) => {
+        sendMessage(reply);
+      };
+
+      // ---------- CHECKOUT HANDLERS ----------
+      const proceedToShipping = () => setCheckoutStep(1);
+      const proceedToPayment = () => setCheckoutStep(2);
+      const placeOrder = () => setCheckoutStep(3);
+      const resetCheckout = () => {
+        setCart([]);
+        setCheckoutStep(0);
+        setCartOpen(false);
+        setDiscountApplied(false);
+        setDiscountCode("");
+        setShippingInfo({ name: "", address: "", city: "", pincode: "", phone: "" });
+      };
+
+      const applyDiscount = () => {
+        if (discountCode.toLowerCase() === "first5") {
+          setDiscountApplied(true);
+        } else {
+          alert("Invalid code. Try 'FIRST5'");
+        }
+      };
+
+      return (
+        <div className="flex flex-col min-h-screen bg-gray-50">
+          
+          {/* ---------- TOP PROMO BANNER ---------- */}
+          <div className="bg-rose-700 text-white text-xs sm:text-sm text-center py-2 font-semibold tracking-wide">
+            <i className="fas fa-gift mr-1"></i> 5% OFF FIRST ORDER – CODE: <span className="font-black">FIRST5</span> 
+            <span className="mx-2">|</span> FREE SHIPPING ON ₹999+
+          </div>
+
+          {/* ---------- HEADER (sticky) ---------- */}
+          <header className="sticky top-0 bg-white/80 backdrop-blur-sm border-b shadow-sm z-40">
+            <div className="flex justify-between items-center px-4 py-3 max-w-7xl mx-auto w-full">
+              <div className="flex items-center space-x-2">
+                <h1 className="text-2xl font-black text-rose-700 uppercase tracking-tight">
+                  Sri Yagnaa
+                </h1>
+                <span className="bg-amber-100 text-amber-800 text-[10px] px-2 py-1 rounded-full font-bold hidden sm:block">
+                  Since 1985
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                {/* Category filter for mobile/desktop integrated in header */}
+                <div className="hidden md:flex gap-1 text-sm">
+                  {CATEGORIES.slice(0, 4).map(cat => (
+                    <button 
+                      key={cat} 
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`px-3 py-1.5 rounded-full font-medium transition ${
+                        selectedCategory === cat 
+                          ? 'bg-rose-600 text-white' 
+                          : 'bg-gray-100 hover:bg-gray-200'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+                
+                <button onClick={() => setCartOpen(true)} className="relative p-2">
+                  <i className="fas fa-shopping-bag text-2xl text-gray-700"></i>
+                  {cart.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold">
+                      {cart.reduce((sum, i) => sum + i.qty, 0)}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+            
+            {/* Category tabs for mobile (scrollable) */}
+            <div className="md:hidden px-4 pb-2 overflow-x-auto no-scrollbar flex gap-2 text-sm">
+              {CATEGORIES.map(cat => (
+                <button 
+                  key={cat} 
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-4 py-1.5 rounded-full whitespace-nowrap font-medium ${
+                    selectedCategory === cat 
+                      ? 'bg-rose-600 text-white' 
+                      : 'bg-gray-100'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </header>
+
+          {/* ---------- MAIN CONTENT (PRODUCT GRID) ---------- */}
+          <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-gray-800">
+                {selectedCategory} <span className="font-normal text-gray-500 ml-1">({filteredProducts.length} items)</span>
+              </h2>
+              <div className="text-sm text-gray-600">
+                <i className="fas fa-rupee-sign mr-1"></i> All prices inclusive of taxes
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+              {filteredProducts.map(product => (
+                <div key={product.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition flex flex-col overflow-hidden group">
+                  <div className="relative pt-[100%] overflow-hidden bg-gray-100">
+                    <img 
+                      src={product.image} 
+                      alt={product.title}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      loading="lazy"
+                    />
+                    <span className="absolute top-2 left-2 bg-white/90 text-xs px-2 py-1 rounded-full shadow">
+                      {product.category}
+                    </span>
+                  </div>
+                  <div className="p-3 flex flex-col flex-1">
+                    <h3 className="text-sm font-semibold line-clamp-2 mb-1 min-h-[40px]">{product.title}</h3>
+                    <div className="text-rose-700 font-bold text-lg mt-auto mb-3">₹{product.price}</div>
+                    <button 
+                      onClick={() => addToCart(product)}
+                      className="w-full bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium py-2.5 rounded-xl transition flex items-center justify-center gap-1"
+                    >
+                      <i className="fas fa-cart-plus"></i> Add
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </main>
+
+          {/* ---------- FOOTER (enhanced) ---------- */}
+          <footer className="bg-gray-900 text-white mt-12">
+            <div className="max-w-7xl mx-auto px-4 py-10 grid md:grid-cols-4 gap-8 text-sm">
+              <div>
+                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                  <i className="fas fa-store text-rose-400"></i> Sri Yagnaa
+                </h3>
+                <p className="text-gray-300 leading-relaxed">
+                  Serving devotees since 1985. Authentic pooja samagri, idols, and traditional supplies delivered to your doorstep.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-4 text-rose-300">SHOP</h4>
+                <ul className="space-y-2 text-gray-300">
+                  <li className="hover:text-white cursor-pointer">Pooja Kits</li>
+                  <li className="hover:text-white cursor-pointer">Idols & Murtis</li>
+                  <li className="hover:text-white cursor-pointer">Return Gifts</li>
+                  <li className="hover:text-white cursor-pointer">Incense & Dhoop</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-4 text-rose-300">SUPPORT</h4>
+                <ul className="space-y-2 text-gray-300">
+                  <li className="hover:text-white cursor-pointer">FAQs</li>
+                  <li className="hover:text-white cursor-pointer">Shipping Policy</li>
+                  <li className="hover:text-white cursor-pointer">Returns & Refunds</li>
+                  <li className="hover:text-white cursor-pointer">Track Order</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-4 text-rose-300">CONTACT</h4>
+                <p className="text-gray-300 flex items-center gap-2"><i className="fas fa-envelope w-5"></i> pooja@sriyagnaa.com</p>
+                <p className="text-gray-300 flex items-center gap-2 mt-2"><i className="fas fa-phone-alt w-5"></i> +91 90000 12345</p>
+                <div className="flex gap-4 mt-4 text-gray-400">
+                  <i className="fab fa-facebook-f hover:text-white text-xl"></i>
+                  <i className="fab fa-instagram hover:text-white text-xl"></i>
+                  <i className="fab fa-youtube hover:text-white text-xl"></i>
+                </div>
+              </div>
+            </div>
+            <div className="border-t border-gray-800 text-center text-gray-500 text-xs py-5">
+              © 2026 Sri Yagnaa. All rights reserved. | Pure devotion, delivered.
+            </div>
+          </footer>
+
+          {/* ---------- SHOPPING CART / CHECKOUT DRAWER (ENHANCED) ---------- */}
+          {cartOpen && (
+            <div className="fixed inset-0 flex justify-end z-50">
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setCartOpen(false)}></div>
+              
+              <div className="relative w-full max-w-md bg-white h-full animate-slide flex flex-col shadow-2xl">
+                
+                {/* Header */}
+                <div className="flex justify-between items-center p-5 border-b">
+                  <h2 className="font-bold text-xl flex items-center gap-2">
+                    <i className="fas fa-shopping-cart text-rose-600"></i> Your Cart
+                  </h2>
+                  <button onClick={() => setCartOpen(false)} className="text-gray-500 hover:text-gray-800">
+                    <i className="fas fa-times text-xl"></i>
+                  </button>
+                </div>
+                
+                {/* Body */}
+                <div className="flex-1 overflow-y-auto p-5">
+                  {checkoutStep === 0 && (
+                    <>
+                      {cart.length === 0 ? (
+                        <div className="text-center py-10 text-gray-500">
+                          <i className="fas fa-shopping-bag text-5xl mb-4 text-gray-300"></i>
+                          <p>Your cart is empty</p>
+                          <button 
+                            onClick={() => setCartOpen(false)}
+                            className="mt-4 bg-rose-600 text-white px-6 py-2 rounded-full text-sm"
+                          >
+                            Continue Shopping
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          {/* Cart items */}
+                          <div className="space-y-4 mb-6">
+                            {cart.map(item => (
+                              <div key={item.id} className="flex gap-3 border-b pb-3">
+                                <img src={item.image} className="w-16 h-16 object-cover rounded" />
+                                <div className="flex-1">
+                                  <h4 className="text-sm font-semibold">{item.title}</h4>
+                                  <div className="flex items-center justify-between mt-1">
+                                    <span className="text-rose-700 font-bold">₹{item.price}</span>
+                                    <div className="flex items-center border rounded">
+                                      <button onClick={() => updateQty(item.id, -1)} className="px-2 py-1 text-gray-600 hover:bg-gray-100">-</button>
+                                      <span className="px-2 py-1 w-8 text-center">{item.qty}</span>
+                                      <button onClick={() => updateQty(item.id, 1)} className="px-2 py-1 text-gray-600 hover:bg-gray-100">+</button>
+                                    </div>
+                                  </div>
+                                  <button onClick={() => removeItem(item.id)} className="text-xs text-rose-600 mt-1 flex items-center gap-1">
+                                    <i className="fas fa-trash-alt"></i> Remove
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* Discount coupon */}
+                          <div className="bg-gray-50 p-3 rounded-lg mb-4">
+                            <label className="text-xs font-medium mb-1 block">Have a coupon?</label>
+                            <div className="flex gap-2">
+                              <input 
+                                type="text" 
+                                value={discountCode} 
+                                onChange={(e) => setDiscountCode(e.target.value)}
+                                placeholder="Enter code"
+                                className="flex-1 border p-2 text-sm rounded"
+                              />
+                              <button 
+                                onClick={applyDiscount}
+                                className="bg-gray-800 text-white px-3 py-2 text-sm rounded"
+                              >
+                                Apply
+                              </button>
+                            </div>
+                            {discountApplied && (
+                              <p className="text-green-600 text-xs mt-2"><i className="fas fa-check-circle"></i> 5% discount applied!</p>
+                            )}
+                          </div>
+                          
+                          {/* Summary */}
+                          <div className="border-t pt-4 space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Subtotal</span>
+                              <span className="font-medium">₹{subtotal}</span>
+                            </div>
+                            {discountApplied && (
+                              <div className="flex justify-between text-green-700">
+                                <span>Discount (FIRST5)</span>
+                                <span>-₹{discount}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between">
+                              <span>Shipping</span>
+                              <span className="font-medium">₹{subtotal > 0 ? shippingCost : 0}</span>
+                            </div>
+                            <div className="flex justify-between text-lg font-bold pt-2 border-t">
+                              <span>Total</span>
+                              <span className="text-rose-700">₹{total}</span>
+                            </div>
+                          </div>
+                          
+                          <button 
+                            onClick={proceedToShipping}
+                            className="w-full bg-rose-600 hover:bg-rose-700 text-white py-3 rounded-lg font-bold mt-6"
+                          >
+                            Proceed to Shipping
+                          </button>
+                        </>
+                      )}
+                    </>
+                  )}
+
+                  {/* Step 1: Shipping Information */}
+                  {checkoutStep === 1 && (
+                    <div className="space-y-4">
+                      <h3 className="font-bold text-lg flex items-center gap-2">
+                        <i className="fas fa-truck text-rose-600"></i> Shipping Details
+                      </h3>
+                      <input 
+                        type="text" 
+                        placeholder="Full Name *" 
+                        className="border p-3 w-full rounded"
+                        value={shippingInfo.name}
+                        onChange={(e) => setShippingInfo({...shippingInfo, name: e.target.value})}
+                      />
+                      <input 
+                        type="text" 
+                        placeholder="Address *" 
+                        className="border p-3 w-full rounded"
+                        value={shippingInfo.address}
+                        onChange={(e) => setShippingInfo({...shippingInfo, address: e.target.value})}
+                      />
+                      <div className="grid grid-cols-2 gap-3">
+                        <input 
+                          type="text" 
+                          placeholder="City *" 
+                          className="border p-3 w-full rounded"
+                          value={shippingInfo.city}
+                          onChange={(e) => setShippingInfo({...shippingInfo, city: e.target.value})}
+                        />
+                        <input 
+                          type="text" 
+                          placeholder="Pincode *" 
+                          className="border p-3 w-full rounded"
+                          value={shippingInfo.pincode}
+                          onChange={(e) => setShippingInfo({...shippingInfo, pincode: e.target.value})}
+                        />
+                      </div>
+                      <input 
+                        type="tel" 
+                        placeholder="Phone Number *" 
+                        className="border p-3 w-full rounded"
+                        value={shippingInfo.phone}
+                        onChange={(e) => setShippingInfo({...shippingInfo, phone: e.target.value})}
+                      />
+                      
+                      <div className="border-t pt-4">
+                        <p className="font-medium mb-2">Shipping Method</p>
+                        <label className="flex items-center gap-2 mb-2">
+                          <input 
+                            type="radio" 
+                            name="shipping" 
+                            value="standard" 
+                            checked={shippingMethod === 'standard'} 
+                            onChange={(e) => setShippingMethod(e.target.value)}
+                          />
+                          <span>Standard (₹49) - 3-5 days</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input 
+                            type="radio" 
+                            name="shipping" 
+                            value="express" 
+                            checked={shippingMethod === 'express'} 
+                            onChange={(e) => setShippingMethod(e.target.value)}
+                          />
+                          <span>Express (₹99) - 1-2 days</span>
+                        </label>
+                      </div>
+
+                      <div className="flex gap-3 pt-4">
+                        <button 
+                          onClick={() => setCheckoutStep(0)}
+                          className="flex-1 bg-gray-200 py-3 rounded-lg font-medium"
+                        >
+                          Back
+                        </button>
+                        <button 
+                          onClick={proceedToPayment}
+                          className="flex-1 bg-rose-600 text-white py-3 rounded-lg font-medium"
+                          disabled={!shippingInfo.name || !shippingInfo.address || !shippingInfo.city || !shippingInfo.pincode || !shippingInfo.phone}
+                        >
+                          Continue to Payment
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 2: Payment */}
+                  {checkoutStep === 2 && (
+                    <div className="space-y-4">
+                      <h3 className="font-bold text-lg flex items-center gap-2">
+                        <i className="fas fa-credit-card text-rose-600"></i> Payment
+                      </h3>
+                      <p className="text-sm text-gray-600">Demo Payment – choose a method</p>
+                      
+                      <div className="border rounded-lg p-4 space-y-3">
+                        <label className="flex items-center gap-3">
+                          <input type="radio" name="payment" className="accent-rose-600" defaultChecked />
+                          <span>UPI (Google Pay, PhonePe, Paytm)</span>
+                        </label>
+                        <label className="flex items-center gap-3">
+                          <input type="radio" name="payment" />
+                          <span>Credit / Debit Card</span>
+                        </label>
+                        <label className="flex items-center gap-3">
+                          <input type="radio" name="payment" />
+                          <span>Net Banking</span>
+                        </label>
+                        <label className="flex items-center gap-3">
+                          <input type="radio" name="payment" />
+                          <span>Cash on Delivery</span>
+                        </label>
+                      </div>
+                      
+                      <div className="border-t pt-4">
+                        <div className="flex justify-between font-bold mb-4">
+                          <span>Total Amount</span>
+                          <span className="text-rose-700 text-xl">₹{total}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-3">
+                        <button 
+                          onClick={() => setCheckoutStep(1)}
+                          className="flex-1 bg-gray-200 py-3 rounded-lg"
+                        >
+                          Back
+                        </button>
+                        <button 
+                          onClick={placeOrder}
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold"
+                        >
+                          Pay Securely
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 3: Confirmation */}
+                  {checkoutStep === 3 && (
+                    <div className="text-center py-10">
+                      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i className="fas fa-check-circle text-green-600 text-4xl"></i>
+                      </div>
+                      <h3 className="font-bold text-2xl text-green-700 mb-2">Order Placed!</h3>
+                      <p className="text-gray-600 mb-6">Thank you for your purchase. Your order ID is #SY{Math.floor(Math.random()*10000)}</p>
+                      <p className="text-sm text-gray-500 mb-6">We've sent a confirmation to your email.</p>
+                      <button 
+                        onClick={resetCheckout}
+                        className="bg-rose-600 text-white px-8 py-3 rounded-lg font-bold"
+                      >
+                        Continue Shopping
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ---------- ENHANCED CHATBOT with Quick Replies ---------- */}
+          <button
+            onClick={() => setChatOpen(!chatOpen)}
+            className="fixed bottom-6 right-6 bg-rose-600 hover:bg-rose-700 text-white w-14 h-14 rounded-full shadow-lg text-2xl flex items-center justify-center transition z-50"
+          >
+            <i className="fas fa-comment"></i>
+          </button>
+
+          {chatOpen && (
+            <div className="fixed bottom-24 right-6 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 border border-gray-200">
+              
+              <div className="bg-rose-700 text-white p-4 flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <i className="fas fa-robot text-xl"></i>
+                  <span className="font-bold">Sri Yagnaa Assistant</span>
+                </div>
+                <button onClick={() => setChatOpen(false)} className="text-white/80 hover:text-white">
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div className="flex-1 p-4 space-y-3 overflow-y-auto max-h-80 bg-gray-50 text-sm">
+                {messages.map((m, i) => (
+                  <div key={i} className={`flex ${m.from === "bot" ? "justify-start" : "justify-end"}`}>
+                    <div className={`max-w-[80%] px-4 py-2.5 rounded-2xl ${
+                      m.from === "bot" 
+                        ? "bg-white border border-gray-200 text-gray-800" 
+                        : "bg-rose-600 text-white"
+                    }`}>
+                      {m.text}
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Quick replies */}
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {quickReplies.map((reply, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleQuickReply(reply)}
+                      className="text-xs bg-white border border-gray-300 hover:bg-gray-100 rounded-full px-3 py-1.5 text-gray-700 transition chat-quick-reply"
+                    >
+                      {reply}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="flex border-t bg-white p-2">
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                  placeholder="Ask about pooja items..."
+                  className="flex-1 px-3 py-2 text-sm outline-none border-none focus:ring-0"
+                />
+                <button 
+                  onClick={() => sendMessage()}
+                  className="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2 rounded-full text-sm font-medium"
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Render the app
+    const root = document.getElementById("root");
+    ReactDOM.createRoot(root).render(<App />);
+  </script>
+</body>
+</html>
