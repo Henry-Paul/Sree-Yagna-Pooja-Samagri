@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>Sri Yagnaa | Spiritual Commerce Web App</title>
+
+<meta name="description" content="Sri Yagnaa - Premium Pooja Samagri & Spiritual Essentials Store." />
+<meta name="theme-color" content="#e11d48" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<style>
+body { font-family: ui-sans-serif, system-ui; }
+.no-scrollbar::-webkit-scrollbar { display:none; }
+.glass { backdrop-filter: blur(16px); background: rgba(255,255,255,0.7); }
+</style>
+</head>
+
+<body class="bg-gradient-to-br from-rose-50 via-white to-amber-50 text-gray-800">
+
+<div id="root"></div>
+
+<script type="text/babel">
+
+const { useState, useEffect } = React;
+
+const PRODUCTS = [
+{ id:1,title:"Varalakshmi Pooja Set",price:999,image:"https://images.unsplash.com/photo-1605379399642-870262d3d051?auto=format&fit=crop&w=600"},
+{ id:2,title:"Navagraha Navadhanyalu Kit",price:499,image:"https://images.unsplash.com/photo-1597304985890-0d7b17a9f0e2?auto=format&fit=crop&w=600"},
+{ id:3,title:"Brass Diya Set",price:799,image:"https://images.unsplash.com/photo-1606788075761-4c59b2bde09f?auto=format&fit=crop&w=600"},
+{ id:4,title:"Laksha Vathulu Pack",price:299,image:"https://images.unsplash.com/photo-1607082349566-187342175e2f?auto=format&fit=crop&w=600"}
+];
+
+function App(){
+
+const [cart,setCart] = useState([]);
+const [cartOpen,setCartOpen] = useState(false);
+const [deferredPrompt,setDeferredPrompt] = useState(null);
+
+useEffect(()=>{
+window.addEventListener("beforeinstallprompt",(e)=>{
+e.preventDefault();
+setDeferredPrompt(e);
+});
+},[]);
+
+const addToCart = (product)=>{
+setCart(prev=>{
+const exists = prev.find(i=>i.id===product.id);
+if(exists){
+return prev.map(i=>i.id===product.id?{...i,qty:i.qty+1}:i);
+}
+return [...prev,{...product,qty:1}];
+});
+setCartOpen(true);
+};
+
+const subtotal = cart.reduce((a,b)=>a+(b.price*b.qty),0);
+
+return(
+<div className="flex min-h-screen">
+
+{/* Desktop Sidebar */}
+<aside className="hidden md:flex flex-col w-64 p-6 glass border-r">
+<h2 className="text-2xl font-black text-rose-600 mb-10">Sri Yagnaa</h2>
+<nav className="space-y-4 text-sm font-semibold">
+<button className="block text-left hover:text-rose-600">Home</button>
+<button className="block text-left hover:text-rose-600">Festive Kits</button>
+<button className="block text-left hover:text-rose-600">Daily Essentials</button>
+<button className="block text-left hover:text-rose-600">Offers</button>
+</nav>
+
+{deferredPrompt &&
+<button
+onClick={()=>deferredPrompt.prompt()}
+className="mt-auto bg-rose-600 text-white py-3 rounded-xl font-bold">
+Install App
+</button>
+}
+</aside>
+
+{/* Main Content */}
+<div className="flex-1 flex flex-col">
+
+{/* Top Bar */}
+<header className="glass sticky top-0 z-30 flex justify-between items-center px-6 py-4 border-b">
+<h1 className="text-xl font-black text-rose-600 md:hidden">Sri Yagnaa</h1>
+<button onClick={()=>setCartOpen(true)} className="relative">
+🛒
+{cart.length>0 &&
+<span className="absolute -top-2 -right-2 bg-rose-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+{cart.length}
+</span>}
+</button>
+</header>
+
+{/* Product Grid */}
+<main className="p-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+{PRODUCTS.map(p=>(
+<div key={p.id} className="bg-white rounded-2xl shadow hover:shadow-xl transition-all overflow-hidden">
+<img src={p.image} className="w-full h-40 object-cover"/>
+<div className="p-4 flex flex-col">
+<h3 className="font-bold text-sm mb-2">{p.title}</h3>
+<div className="text-rose-600 font-black mb-4">₹{p.price}</div>
+<button
+onClick={()=>addToCart(p)}
+className="bg-rose-600 text-white py-2 rounded-xl text-xs font-bold">
+Add to Cart
+</button>
+</div>
+</div>
+))}
+</main>
+
+</div>
+
+{/* Cart Drawer */}
+{cartOpen &&
+<div className="fixed inset-0 flex justify-end z-50">
+<div className="absolute inset-0 bg-black/40" onClick={()=>setCartOpen(false)}></div>
+<div className="relative w-full max-w-sm bg-white h-full p-6 flex flex-col">
+<h2 className="font-black text-lg mb-6">Your Cart</h2>
+
+<div className="flex-1 overflow-y-auto space-y-4">
+{cart.length===0?
+<p className="text-gray-500">Cart is empty</p>:
+cart.map(item=>(
+<div key={item.id} className="flex justify-between text-sm">
+<span>{item.title} x {item.qty}</span>
+<span>₹{item.price*item.qty}</span>
+</div>
+))
+}
+</div>
+
+<div className="border-t pt-4 mt-4">
+<div className="flex justify-between font-bold text-lg">
+<span>Total</span>
+<span>₹{subtotal}</span>
+</div>
+<button className="mt-4 w-full bg-rose-600 text-white py-3 rounded-xl font-bold">
+Checkout
+</button>
+</div>
+</div>
+</div>
+}
+
+{/* Mobile Bottom Nav */}
+<nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around py-3 text-xs font-semibold">
+<button className="text-rose-600">Home</button>
+<button>Categories</button>
+<button onClick={()=>setCartOpen(true)}>Cart</button>
+<button>Profile</button>
+</nav>
+
+</div>
+);
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+
+<script>
+if("serviceWorker" in navigator){
+window.addEventListener("load",()=>{
+navigator.serviceWorker.register("service-worker.js");
+});
+}
+</script>
+
+</body>
+</html>

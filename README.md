@@ -1,2 +1,2 @@
-# Sree-Yagna-Pooja-Samagri
-Best Pooja Samagri
+# Sree-Yagana-Pooja-Samagri
+Best Pooja Samagri Store
